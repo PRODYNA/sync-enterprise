@@ -7,4 +7,4 @@ RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build --ldflags '-extldflags=-stati
 FROM alpine:3.19.1
 COPY --from=build /app/delete-from-enterprise /app/
 COPY /template /template
-ENTRYPOINT ["/app/github-users"]
+ENTRYPOINT ["/app/delete-from-enterprise"]
