@@ -1,10 +1,23 @@
 package main
 
 import (
-	"fmt"
-	"github.com/prodyna/delete-from-enterprise/meta"
+	"github.com/prodyna/delete-from-enterprise/config"
+	"log/slog"
+	"os"
 )
 
 func main() {
-	fmt.Printf("Hello, World! %s\n", meta.Version)
+	c, err := config.New()
+	if err != nil {
+		slog.Error("Unable to create config", "error", err)
+		os.Exit(1)
+	}
+	slog.Info("Configuration",
+		"githubEnterprise", c.GitHub.Enterprise,
+		"githubToken", "***",
+		"azureClientId", c.Azure.ClientId,
+		"azureClientSecret", "***",
+		"azureTenantId", c.Azure.TenantId,
+		"azureGroup", c.Azure.Group,
+		"dryRun", c.DryRun)
 }
