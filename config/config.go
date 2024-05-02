@@ -19,7 +19,7 @@ const (
 	keyDryRun            = "dry-run"
 
 	keyGitHubEnterpriseEnvironment  = "GITHUB_ENTERPRISE"
-	keyGitHubTokenEnvironment       = "GITHUB-TOKEN"
+	keyGitHubTokenEnvironment       = "GITHUB_TOKEN"
 	keyAzureClientIdEnvironment     = "AZURE_CLIENT_ID"
 	keyAzureClientSecretEnvironment = "AZURE_CLIENT_SECRET"
 	keyAzureTenantIdEnvironment     = "AZURE_TENANT_ID"
