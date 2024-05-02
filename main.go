@@ -53,7 +53,7 @@ func main() {
 		"enterprise", c.GitHub.Enterprise,
 		"token", "***")
 
-	err := sync.Sync(*az, *gh)
+	err = sync.Sync(*az, *gh)
 	if err != nil {
 		slog.Error("Unable to sync", "error", err)
 		os.Exit(1)
