@@ -1,0 +1,43 @@
+name: 'Delete from enterprise'
+description: 'GitHub Action removes everybody from the whole enterprise if he is not member of an Azure group anymore'
+author: darko.krizic@prodyna.com
+inputs:
+  github-token:
+    description: 'The GitHub Token to use for authentication, it needs permissions to read member in source-org and invite them to the target-org'
+    required: true
+  github-enterprise:
+    description: 'The GitHub Enterprise to query for members'
+    required: true
+  dry-run:
+    description: 'If true, the action will only print the list of users that would be invited'
+    required: false
+    default: 'false'
+  verbose:
+    description: 'Verbosity, 0=error, 1=warn, 2=info, 3=debug'
+    required: false
+    default: '2'
+  azure-group:
+    description: 'The Azure group to query for members'
+    required: true
+  azure-tenant-id:
+    description: 'The Azure Tenant ID to use for authentication'
+    required: true
+  azure-client-id:
+    description: 'The Azure Client ID to use for authentication'
+    required: true
+  azure-client-secret:
+    description: 'The Azure Client Secret to use for authentication'
+    required: true
+runs:
+  using: 'docker'
+  image: 'docker://ghcr.io/prodyna/delete-from-enterprise:v1.0'
+  env:
+    GITHUB_TOKEN: ${{ inputs.github-token }}
+    GITHUB-ENTERPRISE: ${{ inputs.github-enterprise }}
+    DRY_RUN: ${{ inputs.dry-run }}
+    VERBOSE: ${{ inputs.verbose }}
+    AZURE_GROUP: ${{ inputs.azure-group }}
+    AZURE_TENANT_ID: ${{ inputs.azure-tenant-id }}
+    AZURE_CLIENT_ID: ${{ inputs.azure-client-id }}
+    AZURE_CLIENT_SECRET: ${{ inputs.azure-client-secret }}
+
