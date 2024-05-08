@@ -33,7 +33,7 @@ runs:
   image: 'docker://ghcr.io/prodyna/delete-from-enterprise:v0.9'
   env:
     GITHUB_TOKEN: ${{ inputs.github-token }}
-    GITHUB-ENTERPRISE: ${{ inputs.github-enterprise }}
+    GITHUB_ENTERPRISE: ${{ inputs.github-enterprise }}
     DRY_RUN: ${{ inputs.dry-run }}
     VERBOSE: ${{ inputs.verbose }}
     AZURE_GROUP: ${{ inputs.azure-group }}
