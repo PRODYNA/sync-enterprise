@@ -14,6 +14,13 @@ import (
 func main() {
 	ctx := context.Background()
 
+	opts := &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}
+	logger := slog.New(slog.NewTextHandler(os.Stdout, opts))
+	slog.SetDefault(logger)
+
+	slog.SetDefault(logger)
 	c, err := config.New()
 	if err != nil {
 		slog.Error("Unable to create config", "error", err)

@@ -54,9 +54,9 @@ func (g GitHub) DryRun() bool {
 	return g.config.DryRun
 }
 
-func (g GitHub) loadMembers(ctx context.Context) error {
-	slog.Info("Loading members", "enterprise", g.client.Enterprise)
-	g.userlist = GitHubUsers{}
+func (g *GitHub) loadMembers(ctx context.Context) error {
+	slog.Info("Loading members", "enterprise", g.config.Enterprise)
+	gitHubUsers := []GitHubUser{}
 
 	src := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: g.config.Token},
@@ -117,7 +117,7 @@ func (g GitHub) loadMembers(ctx context.Context) error {
 				Login: e.Node.User.Login,
 				Email: e.Node.SamlIdentity.NameId,
 			}
-			g.userlist = append(g.userlist, u)
+			gitHubUsers = append(gitHubUsers, u)
 		}
 
 		if !query.Enterprise.OwnerInfo.SamlIdentityProvider.ExternalIdentities.PageInfo.HasNextPage {
@@ -126,6 +126,8 @@ func (g GitHub) loadMembers(ctx context.Context) error {
 
 		variables["after"] = githubv4.NewString(query.Enterprise.OwnerInfo.SamlIdentityProvider.ExternalIdentities.PageInfo.EndCursor)
 	}
+
+	g.userlist = gitHubUsers
 
 	slog.InfoContext(ctx, "Loaded userlist", "users", len(g.userlist))
 	return nil

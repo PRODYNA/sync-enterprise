@@ -15,9 +15,8 @@ type Config struct {
 }
 
 type Azure struct {
-	config     Config
-	azureUsers *AzureUsers
-	azclient   *msgraphsdk.GraphServiceClient
+	Config   Config
+	azclient *msgraphsdk.GraphServiceClient
 }
 
 type AzureUser struct {
@@ -29,7 +28,7 @@ type AzureUsers []AzureUser
 
 func New(ctx context.Context, config Config) (*Azure, error) {
 	az := Azure{
-		config: config,
+		Config: config,
 	}
 
 	cred, err := azidentity.NewClientSecretCredential(
@@ -56,30 +55,6 @@ func New(ctx context.Context, config Config) (*Azure, error) {
 	return &az, nil
 }
 
-func (a Azure) Users(ctx context.Context) (AzureUsers, error) {
-	if a.azureUsers == nil {
-		users := AzureUsers{}
-
-		group, err := a.azclient.Groups().ByGroupId(a.config.AzureGroup).Get(ctx, nil)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, member := range group.GetMembers() {
-			slog.Info("Member", slog.Any("member", member))
-		}
-
-		a.azureUsers = &users
-
-	}
-	return *a.azureUsers, nil
-}
-
-func (aus AzureUsers) Contains(email string) bool {
-	for _, u := range aus {
-		if u.Email == email {
-			return true
-		}
-	}
-	return false
+func (a Azure) IsUserInGroup(ctx context.Context, email string) (bool, error) {
+	return false, nil
 }
