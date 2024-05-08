@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
-	msauth "github.com/microsoftgraph/msgraph-sdk-go/msauth"
 	"log/slog"
 )
 
@@ -42,7 +41,6 @@ func New(ctx context.Context, config Config) (*Azure, error) {
 		return nil, err
 	}
 
-	auth := msauth.(ctx, config.AzureTenantId, config.AzureClientId, config.AzureClientSecret)
 	az.azclient, err = msgraphsdk.NewGraphServiceClientWithCredentials(cred, []string{"https://graph.microsoft.com/.default"})
 	if err != nil {
 		return nil, err

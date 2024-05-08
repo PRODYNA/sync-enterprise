@@ -1,65 +1,24 @@
-package github
+package userlist
 
 import (
 	"context"
-	"github.com/google/go-github/v61/github"
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
 	"log/slog"
+	"strings"
+	"time"
 )
 
-type Config struct {
-	Enterprise string
-	Token      string
-	DryRun     bool
-}
-
-type GitHub struct {
-	config   Config
-	client   *github.Client
-	userlist GitHubUsers
-}
-
-type GitHubUser struct {
-	Login string
-	Email string
-}
-
-type GitHubUsers []GitHubUser
-
-func New(ctx context.Context, config Config) (*GitHub, error) {
-	gh := GitHub{
-		config: config,
-		client: github.NewClient(nil).WithAuthToken(config.Token),
+func (c *UserListConfig) loadMembers() error {
+	slog.Info("Loading members", "enterprise", c.enterprise)
+	c.userList = UserList{
+		// updated as RFC3339 string
+		Updated: time.Now().Format(time.RFC3339),
 	}
 
-	return &gh, nil
-}
-
-func (g GitHub) Users(ctx context.Context) ([]GitHubUser, error) {
-	if g.userlist == nil {
-		err := g.loadMembers(ctx)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return g.userlist, nil
-}
-
-func (g GitHub) DeleteUser(user GitHubUser) error {
-	return nil
-}
-
-func (g GitHub) DryRun() bool {
-	return g.config.DryRun
-}
-
-func (g GitHub) loadMembers(ctx context.Context) error {
-	slog.Info("Loading members", "enterprise", g.client.Enterprise)
-	g.userlist = GitHubUsers{}
-
+	ctx := context.Background()
 	src := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: g.config.Token},
+		&oauth2.Token{AccessToken: c.githubToken},
 	)
 	httpClient := oauth2.NewClient(ctx, src)
 	client := githubv4.NewClient(httpClient)
@@ -99,7 +58,7 @@ func (g GitHub) loadMembers(ctx context.Context) error {
 
 	window := 25
 	variables := map[string]interface{}{
-		"slug":  githubv4.String(g.config.Enterprise),
+		"slug":  githubv4.String(c.enterprise),
 		"first": githubv4.Int(window),
 		"after": (*githubv4.String)(nil),
 	}
@@ -112,12 +71,21 @@ func (g GitHub) loadMembers(ctx context.Context) error {
 			return err
 		}
 
-		for _, e := range query.Enterprise.OwnerInfo.SamlIdentityProvider.ExternalIdentities.Edges {
-			u := GitHubUser{
-				Login: e.Node.User.Login,
-				Email: e.Node.SamlIdentity.NameId,
+		c.userList.Enterprise = Enterprise{
+			Slug: query.Enterprise.Slug,
+			Name: query.Enterprise.Name,
+		}
+
+		for i, e := range query.Enterprise.OwnerInfo.SamlIdentityProvider.ExternalIdentities.Edges {
+			u := User{
+				Number:        offset + i + 1,
+				Login:         e.Node.User.Login,
+				Name:          e.Node.User.Name,
+				Email:         e.Node.SamlIdentity.NameId,
+				IsOwnDomain:   IsOwnDomain(e.Node.SamlIdentity.NameId, c.ownDomains),
+				Contributions: e.Node.User.ContributionsCollection.ContributionCalendar.TotalContributions,
 			}
-			g.userlist = append(g.userlist, u)
+			c.userList.upsertUser(u)
 		}
 
 		if !query.Enterprise.OwnerInfo.SamlIdentityProvider.ExternalIdentities.PageInfo.HasNextPage {
@@ -127,6 +95,19 @@ func (g GitHub) loadMembers(ctx context.Context) error {
 		variables["after"] = githubv4.NewString(query.Enterprise.OwnerInfo.SamlIdentityProvider.ExternalIdentities.PageInfo.EndCursor)
 	}
 
-	slog.InfoContext(ctx, "Loaded userlist", "users", len(g.userlist))
+	slog.InfoContext(ctx, "Loaded userlist", "users", len(c.userList.Users))
+	c.loaded = true
 	return nil
+}
+
+func IsOwnDomain(email string, ownDomains []string) bool {
+	if len(ownDomains) == 0 {
+		return true
+	}
+	for _, domain := range ownDomains {
+		if strings.HasSuffix(email, domain) {
+			return true
+		}
+	}
+	return false
 }
