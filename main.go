@@ -1,20 +1,25 @@
 package main
 
 import (
+	"context"
 	"github.com/prodyna/delete-from-enterprise/azure"
 	"github.com/prodyna/delete-from-enterprise/config"
 	"github.com/prodyna/delete-from-enterprise/github"
+	"github.com/prodyna/delete-from-enterprise/meta"
 	"github.com/prodyna/delete-from-enterprise/sync"
 	"log/slog"
 	"os"
 )
 
 func main() {
+	ctx := context.Background()
+
 	c, err := config.New()
 	if err != nil {
 		slog.Error("Unable to create config", "error", err)
 		os.Exit(1)
 	}
+	slog.Info("Starting [Delete from enterprise]", "version", meta.Version)
 	slog.Info("Configuration",
 		"githubEnterprise", c.GitHub.Enterprise,
 		"githubToken", "***",
@@ -24,7 +29,7 @@ func main() {
 		"azureGroup", c.Azure.Group,
 		"dryRun", c.DryRun)
 
-	az, err := azure.New(azure.Config{
+	az, err := azure.New(ctx, azure.Config{
 		AzureClientId:     c.Azure.ClientId,
 		AzureClientSecret: c.Azure.ClientSecret,
 		AzureTenantId:     c.Azure.TenantId,
@@ -39,7 +44,7 @@ func main() {
 		"clientId", c.Azure.ClientId,
 		"group", c.Azure.Group)
 
-	gh, nil := github.New(github.Config{
+	gh, nil := github.New(ctx, github.Config{
 		Enterprise: c.GitHub.Enterprise,
 		Token:      c.GitHub.Token,
 		DryRun:     c.DryRun,
@@ -53,7 +58,7 @@ func main() {
 		"enterprise", c.GitHub.Enterprise,
 		"token", "***")
 
-	err = sync.Sync(*az, *gh)
+	err = sync.Sync(ctx, *az, *gh)
 	if err != nil {
 		slog.Error("Unable to sync", "error", err)
 		os.Exit(1)

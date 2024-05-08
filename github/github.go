@@ -1,5 +1,10 @@
 package github
 
+import (
+	"context"
+	"github.com/google/go-github/v61/github"
+)
+
 type Config struct {
 	Enterprise string
 	Token      string
@@ -8,6 +13,7 @@ type Config struct {
 
 type GitHub struct {
 	config Config
+	client *github.Client
 }
 
 type GitHubUser struct {
@@ -15,13 +21,16 @@ type GitHubUser struct {
 	Email string
 }
 
-func New(config Config) (*GitHub, error) {
-	return &GitHub{
+func New(ctx context.Context, config Config) (*GitHub, error) {
+	gh := GitHub{
 		config: config,
-	}, nil
+		client: github.NewClient(nil).WithAuthToken(config.Token),
+	}
+
+	return &gh, nil
 }
 
-func (g GitHub) Users() ([]GitHubUser, error) {
+func (g GitHub) Users(ctx context.Context) ([]GitHubUser, error) {
 	return nil, nil
 }
 

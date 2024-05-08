@@ -1,6 +1,7 @@
 package sync
 
 import (
+	"context"
 	"github.com/prodyna/delete-from-enterprise/azure"
 	"github.com/prodyna/delete-from-enterprise/github"
 	"log/slog"
@@ -22,11 +23,11 @@ type Action struct {
 	githubUser github.GitHubUser
 }
 
-func Sync(az azure.Azure, gh github.GitHub) (err error) {
+func Sync(ctx context.Context, az azure.Azure, gh github.GitHub) (err error) {
 	actions := []Action{}
 
-	githubUsers, err := gh.Users()
-	azureUsers, err := az.Users()
+	githubUsers, err := gh.Users(ctx)
+	azureUsers, err := az.Users(ctx)
 	if err != nil {
 		return err
 	}
@@ -34,13 +35,17 @@ func Sync(az azure.Azure, gh github.GitHub) (err error) {
 		if azureUsers.Contains(githubUser.Email) {
 			actions = append(actions, Action{
 				actionType: Nothing,
-				azureUser:  azure.AzureUser(githubUser.Email),
+				azureUser: azure.AzureUser{
+					Email: githubUser.Email,
+				},
 				githubUser: githubUser,
 			})
 		} else {
 			actions = append(actions, Action{
 				actionType: Delete,
-				azureUser:  azure.AzureUser(githubUser.Email),
+				azureUser: azure.AzureUser{
+					Email: githubUser.Email,
+				},
 				githubUser: githubUser,
 			})
 		}
