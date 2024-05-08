@@ -35,7 +35,8 @@ jobs:
       run: docker push ghcr.io/prodyna/delete-from-enterprise:latest
 
     # if tagged, push the image to the GitHub Container Registry
-    - name: Push the tagged Docker image to the GitHub Container Registry
+    - name: Tag with git tag and push to GitHub Container Registry
+      # only if it is a tag
       if: startsWith(github.ref, 'refs/tags/v')
       run: |
         docker tag ghcr.io/prodyna/delete-from-enterprise:latest ghcr.io/prodyna/delete-from-enterprise:${{ env.tag }}
