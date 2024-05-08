@@ -46,7 +46,7 @@ func (g GitHub) Users(ctx context.Context) ([]GitHubUser, error) {
 	return g.userlist, nil
 }
 
-func (g GitHub) DeleteUser(user GitHubUser) error {
+func (g GitHub) DeleteUser(login string) error {
 	return nil
 }
 
@@ -113,6 +113,9 @@ func (g *GitHub) loadMembers(ctx context.Context) error {
 		}
 
 		for _, e := range query.Enterprise.OwnerInfo.SamlIdentityProvider.ExternalIdentities.Edges {
+			slog.Debug("GitHub user",
+				"login", e.Node.User.Login,
+				"email", e.Node.SamlIdentity.NameId)
 			u := GitHubUser{
 				Login: e.Node.User.Login,
 				Email: e.Node.SamlIdentity.NameId,

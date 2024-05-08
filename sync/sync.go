@@ -10,17 +10,16 @@ import (
 type ActionType int
 
 const (
-	// nothing represents no action
-	Nothing ActionType = iota
 	// Delete represents a delete action
 	Delete ActionType = iota
 )
 
 // Action represents a delete action
 type Action struct {
-	actionType ActionType
-	azureUser  azure.AzureUser
-	githubUser github.GitHubUser
+	actionType  ActionType
+	displayName string
+	email       string
+	login       string
 }
 
 func Sync(ctx context.Context, az azure.Azure, gh github.GitHub) (err error) {
@@ -34,19 +33,27 @@ func Sync(ctx context.Context, az azure.Azure, gh github.GitHub) (err error) {
 
 	slog.Info("Checking if github users are in Azure group", "count", len(githubUsers), "group", az.Config.AzureGroup)
 	for _, githubUser := range githubUsers {
+		slog.Debug("Checking user", "login", githubUser.Login, "email", githubUser.Email)
 		// check if user is in azure
-		inAzure, err := az.IsUserInGroup(ctx, githubUser.Email)
+		inAzure, name, err := az.IsUserInGroup(ctx, githubUser.Email)
 		if err != nil {
 			return err
 		}
 
 		if !inAzure {
-			actions = append(actions, Action{
+			slog.Debug("User not in Azure", "login", githubUser.Login, "email", githubUser.Email)
+			action := &Action{
 				actionType: Delete,
-				githubUser: githubUser,
-			})
+				email:      githubUser.Email,
+				login:      githubUser.Login,
+			}
+			if name != nil {
+				action.displayName = *name
+			}
+			actions = append(actions, *action)
 			delete++
 		} else {
+			slog.Debug("User in Azure", "login", githubUser.Login, "email", githubUser.Email, "name", *name)
 			stay++
 		}
 	}
@@ -54,19 +61,27 @@ func Sync(ctx context.Context, az azure.Azure, gh github.GitHub) (err error) {
 	for _, a := range actions {
 		if a.actionType == Delete {
 			if gh.DryRun() {
-				slog.Info("Would delete user", "login", a.githubUser.Login, "email", a.githubUser.Email)
+				slog.Info("Dry-run, would delete user",
+					"login", a.login,
+					"email", a.email,
+					"name", a.displayName)
 				continue
 			}
 
-			slog.Info("Deleting user", "user", "login", a.githubUser.Login, "email", a.githubUser.Email)
-			err = gh.DeleteUser(a.githubUser)
+			slog.Info("Deleting user",
+				"login", a.login,
+				"email", a.email,
+				"name", a.displayName)
+			err = gh.DeleteUser(a.login)
 			if err != nil {
 				return err
 			}
 		}
 	}
 
-	slog.Info("Sync finished", "delete", delete, "leave", stay)
+	slog.Info("Sync finished",
+		"delete", delete,
+		"stay", stay)
 
 	return nil
 }

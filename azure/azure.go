@@ -78,7 +78,6 @@ func (az *Azure) Users(ctx context.Context) ([]AzureUser, error) {
 		if err != nil {
 			return nil, fmt.Errorf("error getting group members: %w", err)
 		}
-		slog.Info("result", slog.Any("result", result))
 
 		pageIterator, err := msgraphgocore.NewPageIterator[*models.User](result, az.azclient.GetAdapter(), models.CreateUserCollectionResponseFromDiscriminatorValue)
 		if err != nil {
@@ -87,7 +86,7 @@ func (az *Azure) Users(ctx context.Context) ([]AzureUser, error) {
 
 		err = pageIterator.Iterate(ctx, func(user *models.User) bool {
 			if user != nil {
-				slog.Info("Azure group member",
+				slog.Debug("Azure group member",
 					"email", *user.GetMail(),
 					"displayName", *user.GetDisplayName())
 				users = append(users, AzureUser{
@@ -104,17 +103,17 @@ func (az *Azure) Users(ctx context.Context) ([]AzureUser, error) {
 	return az.users, nil
 }
 
-func (az *Azure) IsUserInGroup(ctx context.Context, email string) (bool, error) {
+func (az *Azure) IsUserInGroup(ctx context.Context, email string) (isInGroup bool, displayName *string, err error) {
 	users, err := az.Users(ctx)
 	if err != nil {
-		return false, err
+		return false, nil, err
 	}
 
 	for _, user := range users {
 		if user.Email == email {
-			return true, nil
+			return true, &user.DisplayName, nil
 		}
 	}
 
-	return false, nil
+	return false, nil, nil
 }
