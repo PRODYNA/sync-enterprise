@@ -9,6 +9,7 @@ import (
 	"github.com/microsoftgraph/msgraph-sdk-go/groups"
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
 	"log/slog"
+	"strings"
 )
 
 type Config struct {
@@ -108,9 +109,10 @@ func (az *Azure) IsUserInGroup(ctx context.Context, email string) (isInGroup boo
 	if err != nil {
 		return false, nil, err
 	}
+	emailLC := strings.ToLower(email)
 
 	for _, user := range users {
-		if user.Email == email {
+		if strings.ToLower(user.Email) == emailLC {
 			return true, &user.DisplayName, nil
 		}
 	}
