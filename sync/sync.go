@@ -72,7 +72,7 @@ func Sync(ctx context.Context, az azure.Azure, gh github.GitHub) (err error) {
 				"login", a.login,
 				"email", a.email,
 				"name", a.displayName)
-			err = gh.DeleteUser(a.login)
+			err = gh.DeleteUser(ctx, a.login)
 			if err != nil {
 				return err
 			}
