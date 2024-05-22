@@ -46,10 +46,6 @@ func (g GitHub) Users(ctx context.Context) ([]GitHubUser, error) {
 	return g.userlist, nil
 }
 
-func (g GitHub) DeleteUser(login string) error {
-	return nil
-}
-
 func (g GitHub) DryRun() bool {
 	return g.config.DryRun
 }
