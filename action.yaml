@@ -30,7 +30,7 @@ inputs:
     required: true
 runs:
   using: 'docker'
-  image: 'docker://ghcr.io/prodyna/delete-from-enterprise:v0.9.1'
+  image: 'docker://ghcr.io/prodyna/delete-from-enterprise:v1.0.0'
   env:
     GITHUB_TOKEN: ${{ inputs.github-token }}
     GITHUB_ENTERPRISE: ${{ inputs.github-enterprise }}
