@@ -15,12 +15,14 @@ type Config struct {
 }
 
 type GitHub struct {
-	config   Config
-	client   *github.Client
-	userlist GitHubUsers
+	config       Config
+	client       *github.Client
+	userlist     GitHubUsers
+	enterpriseId string
 }
 
 type GitHubUser struct {
+	ID    string
 	Login string
 	Email string
 }
@@ -36,7 +38,7 @@ func New(ctx context.Context, config Config) (*GitHub, error) {
 	return &gh, nil
 }
 
-func (g GitHub) Users(ctx context.Context) ([]GitHubUser, error) {
+func (g *GitHub) Users(ctx context.Context) ([]GitHubUser, error) {
 	if g.userlist == nil {
 		err := g.loadMembers(ctx)
 		if err != nil {
@@ -62,6 +64,7 @@ func (g *GitHub) loadMembers(ctx context.Context) error {
 
 	var query struct {
 		Enterprise struct {
+			Id        string
 			Slug      string
 			Name      string
 			OwnerInfo struct {
@@ -74,6 +77,7 @@ func (g *GitHub) loadMembers(ctx context.Context) error {
 						Edges []struct {
 							Node struct {
 								User struct {
+									ID                      string
 									Login                   string
 									Name                    string
 									ContributionsCollection struct {
@@ -108,11 +112,15 @@ func (g *GitHub) loadMembers(ctx context.Context) error {
 			return err
 		}
 
+		g.enterpriseId = query.Enterprise.Id
+
 		for _, e := range query.Enterprise.OwnerInfo.SamlIdentityProvider.ExternalIdentities.Edges {
 			slog.Debug("GitHub user",
+				"id", e.Node.User.ID,
 				"login", e.Node.User.Login,
 				"email", e.Node.SamlIdentity.NameId)
 			u := GitHubUser{
+				ID:    e.Node.User.ID,
 				Login: e.Node.User.Login,
 				Email: e.Node.SamlIdentity.NameId,
 			}
@@ -130,4 +138,8 @@ func (g *GitHub) loadMembers(ctx context.Context) error {
 
 	slog.InfoContext(ctx, "Loaded userlist", "users", len(g.userlist))
 	return nil
+}
+
+func (g GitHub) EnterpriseId() string {
+	return g.enterpriseId
 }

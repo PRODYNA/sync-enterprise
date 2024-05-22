@@ -7,25 +7,28 @@ import (
 	"log/slog"
 )
 
-func (g GitHub) DeleteUser(ctx context.Context, login string) error {
-	slog.Info("Deleting user", "login", login, "enterprise", g.config.Enterprise)
+func (g GitHub) DeleteUser(ctx context.Context, userId string) error {
+	enterpriseId := g.enterpriseId
+	slog.Info("Deleting user", "userId", userId, "enterprise", g.config.Enterprise, "enterpriseId", g.enterpriseId)
 
 	var mutation struct {
 		RemoveEnterpriseMember struct {
-			Input struct {
-				ClientMutationId string
-				EnterpriseId     string
-				userId           string
+			ClientMutationId string
+			Enterprise       struct {
+				ID string
 			}
-		} `graphql:"removeEnterpriseMember(input: $input)"`
+			User struct {
+				ID string
+			}
+			Viewer struct {
+				ID string
+			}
+		} `graphql:"removeEnterpriseMember(input:$input)"`
 	}
 
-	input := map[string]interface{}{
-		"input": map[string]interface{}{
-			"clientMutationId": "delete-user",
-			"enterpriseId":     g.config.Enterprise,
-			"userId":           login,
-		},
+	input := githubv4.RemoveEnterpriseMemberInput{
+		EnterpriseID: githubv4.ID(enterpriseId),
+		UserID:       githubv4.ID(userId),
 	}
 
 	src := oauth2.StaticTokenSource(
@@ -36,10 +39,10 @@ func (g GitHub) DeleteUser(ctx context.Context, login string) error {
 
 	err := client.Mutate(ctx, &mutation, input, nil)
 	if err != nil {
-		slog.Warn("Unable to delete user", "login", login, "enterprise", g.config.Enterprise, "error", err)
-		return err
+		slog.Warn("Unable to delete user", "userId", userId, "enterprise", g.config.Enterprise, "error", err)
+		return nil
 	}
-	slog.Info("User deleted", "login", login, "enterprise", g.config.Enterprise)
+	slog.Info("User deleted", "userId", userId, "enterprise", g.config.Enterprise)
 
 	return nil
 }

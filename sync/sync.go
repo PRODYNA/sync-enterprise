@@ -20,6 +20,7 @@ type Action struct {
 	displayName string
 	email       string
 	login       string
+	id          string
 }
 
 func Sync(ctx context.Context, az azure.Azure, gh github.GitHub) (err error) {
@@ -44,6 +45,7 @@ func Sync(ctx context.Context, az azure.Azure, gh github.GitHub) (err error) {
 			slog.Debug("User not in Azure", "login", githubUser.Login, "email", githubUser.Email)
 			action := &Action{
 				actionType: Delete,
+				id:         githubUser.ID,
 				email:      githubUser.Email,
 				login:      githubUser.Login,
 			}
@@ -70,11 +72,13 @@ func Sync(ctx context.Context, az azure.Azure, gh github.GitHub) (err error) {
 
 			slog.Info("Deleting user",
 				"login", a.login,
+				"userId", a.id,
 				"email", a.email,
 				"name", a.displayName)
-			err = gh.DeleteUser(ctx, a.login)
+			err = gh.DeleteUser(ctx, a.id)
 			if err != nil {
-				return err
+				continue
+				// return err
 			}
 		}
 	}
