@@ -143,3 +143,8 @@ func (g *GitHub) loadMembers(ctx context.Context) error {
 func (g GitHub) EnterpriseId() string {
 	return g.enterpriseId
 }
+
+func (g GitHub) InviteUser(ctx context.Context, email string, name string) error {
+	slog.WarnContext(ctx, "Method not implemented", "email", email, "name", name, "enterprise", g.config.Enterprise)
+	return nil
+}
