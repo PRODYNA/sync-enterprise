@@ -1,4 +1,4 @@
-module github.com/prodyna/delete-from-enterprise
+module github.com/prodyna/sync-enterprise
 
 go 1.22.3
 

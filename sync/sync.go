@@ -2,8 +2,8 @@ package sync
 
 import (
 	"context"
-	"github.com/prodyna/delete-from-enterprise/azure"
-	"github.com/prodyna/delete-from-enterprise/github"
+	"github.com/prodyna/sync-enterprise/azure"
+	"github.com/prodyna/sync-enterprise/github"
 	"log/slog"
 )
 
