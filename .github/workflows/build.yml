@@ -20,7 +20,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag ghcr.io/prodyna/delete-from-enterprise:latest
+      run: docker build . --file Dockerfile --tag ghcr.io/prodyna/sync-enterprise:latest
 
     # if tag, get the tag as variable
     - name: Get tag if available
@@ -33,12 +33,12 @@ jobs:
 
     # Push latest to GitHub Container Registry
     - name: Push the latest Docker image to the GitHub Container Registry
-      run: docker push ghcr.io/prodyna/delete-from-enterprise:latest
+      run: docker push ghcr.io/prodyna/sync-enterprise:latest
 
     # if tagged, push the image to the GitHub Container Registry
     - name: Tag with git tag and push to GitHub Container Registry
       # only if it is a tag
       if: startsWith(github.ref, 'refs/tags/v')
       run: |
-        docker tag ghcr.io/prodyna/delete-from-enterprise:latest ghcr.io/prodyna/delete-from-enterprise:${{ env.tag }}
-        docker push ghcr.io/prodyna/delete-from-enterprise:${{ env.tag }}
+        docker tag ghcr.io/prodyna/sync-enterprise:latest ghcr.io/prodyna/sync-enterprise:${{ env.tag }}
+        docker push ghcr.io/prodyna/sync-enterprise:${{ env.tag }}

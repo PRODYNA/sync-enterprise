@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
-	"github.com/prodyna/delete-from-enterprise/azure"
-	"github.com/prodyna/delete-from-enterprise/config"
-	"github.com/prodyna/delete-from-enterprise/github"
-	"github.com/prodyna/delete-from-enterprise/meta"
-	"github.com/prodyna/delete-from-enterprise/sync"
+	"github.com/prodyna/sync-enterprise/azure"
+	"github.com/prodyna/sync-enterprise/config"
+	"github.com/prodyna/sync-enterprise/github"
+	"github.com/prodyna/sync-enterprise/meta"
+	"github.com/prodyna/sync-enterprise/sync"
 	"log/slog"
 	"os"
 )
