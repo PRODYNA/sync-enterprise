@@ -53,7 +53,7 @@ func (g GitHub) DryRun() bool {
 }
 
 func (g *GitHub) loadMembers(ctx context.Context) error {
-	slog.Info("Loading members", "enterprise", g.config.Enterprise)
+	slog.InfoContext(ctx, "Loading members", "enterprise", g.config.Enterprise)
 	gitHubUsers := []GitHubUser{}
 
 	src := oauth2.StaticTokenSource(
@@ -105,7 +105,7 @@ func (g *GitHub) loadMembers(ctx context.Context) error {
 	}
 
 	for offset := 0; ; offset += window {
-		slog.Debug("Running query", "offset", offset, "window", window)
+		slog.DebugContext(ctx, "Running query", "offset", offset, "window", window)
 		err := client.Query(ctx, &query, variables)
 		if err != nil {
 			slog.ErrorContext(ctx, "Unable to query", "error", err)
@@ -115,7 +115,7 @@ func (g *GitHub) loadMembers(ctx context.Context) error {
 		g.enterpriseId = query.Enterprise.Id
 
 		for _, e := range query.Enterprise.OwnerInfo.SamlIdentityProvider.ExternalIdentities.Edges {
-			slog.Debug("GitHub user",
+			slog.DebugContext(ctx, "GitHub user",
 				"id", e.Node.User.ID,
 				"login", e.Node.User.Login,
 				"email", e.Node.SamlIdentity.NameId)
