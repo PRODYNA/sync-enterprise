@@ -26,7 +26,7 @@ func main() {
 		slog.Error("Unable to create config", "error", err)
 		os.Exit(1)
 	}
-	slog.Info("Starting [Delete from enterprise]", "version", meta.Version)
+	slog.Info("Starting Sync Enterprise", "version", meta.Version)
 	slog.Info("Configuration",
 		"githubEnterprise", c.GitHub.Enterprise,
 		"githubToken", "***",
