@@ -35,9 +35,9 @@ func Sync(ctx context.Context, az azure.Azure, gh github.GitHub) (err error) {
 	// load github users
 	githubUsers, err := gh.Users(ctx)
 
-	slog.Info("Checking if github users are in Azure group", "count", len(githubUsers), "group", az.Config.AzureGroup)
+	slog.InfoContext(ctx, "Checking if github users are in Azure group", "count", len(githubUsers), "group", az.Config.AzureGroup)
 	for _, githubUser := range githubUsers {
-		slog.Debug("Checking user", "login", githubUser.Login, "email", githubUser.Email)
+		slog.DebugContext(ctx, "Checking user", "login", githubUser.Login, "email", githubUser.Email)
 		// check if user is in azure
 		inAzure, name, err := az.IsUserInGroup(ctx, githubUser.Email)
 		if err != nil {
@@ -45,7 +45,7 @@ func Sync(ctx context.Context, az azure.Azure, gh github.GitHub) (err error) {
 		}
 
 		if !inAzure {
-			slog.Debug("User not in Azure", "login", githubUser.Login, "email", githubUser.Email)
+			slog.DebugContext(ctx, "User not in Azure", "login", githubUser.Login, "email", githubUser.Email)
 			action := &Action{
 				actionType: Delete,
 				id:         githubUser.ID,
@@ -63,13 +63,13 @@ func Sync(ctx context.Context, az azure.Azure, gh github.GitHub) (err error) {
 		}
 	}
 
-	slog.Info("Checking if Azure is is already in GitHub")
+	slog.InfoContext(ctx, "Checking if Azure is is already in GitHub")
 	azureUsers, err := az.Users(ctx)
 	if err != nil {
 		return err
 	}
 	for _, azureUser := range azureUsers {
-		slog.Debug("Checking user", "email", azureUser.Email, "name", azureUser.DisplayName)
+		slog.DebugContext(ctx, "Checking user", "email", azureUser.Email, "name", azureUser.DisplayName)
 		found := false
 		for _, githubUser := range githubUsers {
 			if strings.ToLower(githubUser.Email) == strings.ToLower(azureUser.Email) {
@@ -79,7 +79,7 @@ func Sync(ctx context.Context, az azure.Azure, gh github.GitHub) (err error) {
 		}
 
 		if !found {
-			slog.Debug("User not in GitHub", "email", azureUser.Email, "name", azureUser.DisplayName)
+			slog.DebugContext(ctx, "User not in GitHub", "email", azureUser.Email, "name", azureUser.DisplayName)
 			action := &Action{
 				actionType:  Invite,
 				email:       azureUser.Email,
@@ -99,7 +99,7 @@ func Sync(ctx context.Context, az azure.Azure, gh github.GitHub) (err error) {
 					"name", a.displayName)
 				continue
 			} else {
-				slog.Info("Inviting user",
+				slog.InfoContext(ctx, "Inviting user",
 					"email", a.email,
 					"name", a.displayName)
 				err = gh.InviteUser(ctx, a.email, a.displayName)
@@ -117,7 +117,7 @@ func Sync(ctx context.Context, az azure.Azure, gh github.GitHub) (err error) {
 				continue
 			}
 
-			slog.Info("Deleting user",
+			slog.InfoContext(ctx, "Deleting user",
 				"login", a.login,
 				"userId", a.id,
 				"email", a.email,
@@ -130,7 +130,7 @@ func Sync(ctx context.Context, az azure.Azure, gh github.GitHub) (err error) {
 		}
 	}
 
-	slog.Info("Sync finished",
+	slog.InfoContext(ctx, "Sync finished",
 		"delete", delete,
 		"invite", invite,
 		"stay", stay)

@@ -9,7 +9,7 @@ import (
 
 func (g GitHub) DeleteUser(ctx context.Context, userId string) error {
 	enterpriseId := g.enterpriseId
-	slog.Info("Deleting user", "userId", userId, "enterprise", g.config.Enterprise, "enterpriseId", g.enterpriseId)
+	slog.InfoContext(ctx, "Deleting user", "userId", userId, "enterprise", g.config.Enterprise, "enterpriseId", g.enterpriseId)
 
 	var mutation struct {
 		RemoveEnterpriseMember struct {
@@ -42,7 +42,7 @@ func (g GitHub) DeleteUser(ctx context.Context, userId string) error {
 		slog.Warn("Unable to delete user", "userId", userId, "enterprise", g.config.Enterprise, "error", err)
 		return nil
 	}
-	slog.Info("User deleted", "userId", userId, "enterprise", g.config.Enterprise)
+	slog.InfoContext(ctx, "User deleted", "userId", userId, "enterprise", g.config.Enterprise)
 
 	return nil
 }
